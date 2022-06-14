@@ -1,9 +1,10 @@
 import React, { FC } from 'react';
-
-import Login from '@pages/Login';
-import SignUp from '@pages/SignUp';
 import { Navigate, Route, Routes } from 'react-router';
 import { BrowserRouter } from 'react-router-dom';
+import loadable from '@loadable/component';
+
+const Login = loadable(() => import('@pages/Login'));
+const SignUp = loadable(() => import('@pages/SignUp'));
 
 const App: FC = () => {
   return (
