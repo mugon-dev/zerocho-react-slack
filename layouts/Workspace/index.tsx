@@ -5,6 +5,7 @@ import fetcher from '@utils/fetcher';
 import { Navigate } from 'react-router-dom';
 import {
   Channels,
+  Chats,
   Header,
   MenuScroll,
   ProfileImg,
@@ -14,11 +15,13 @@ import {
   WorkspaceWrapper,
 } from '@layouts/Workspace/styles';
 import gravatar from 'gravatar';
+import { Route, Routes } from 'react-router';
+import loadable from '@loadable/component';
 
-type Props = {
-  children?: React.ReactNode;
-};
-const Index: React.FC<Props> = ({ children }: Props) => {
+const Channel = loadable(() => import('@pages/channel'));
+const DirectMessage = loadable(() => import('@pages/DirectMessage'));
+
+const Index = () => {
   const { data, error, mutate } = useSWR('/api/users', fetcher);
   const onLogout = useCallback(() => {
     axios.post('/api/users/logout', null, { withCredentials: true }).then(() => {
@@ -46,8 +49,13 @@ const Index: React.FC<Props> = ({ children }: Props) => {
           <WorkspaceName>Sleact</WorkspaceName>
           <MenuScroll>MenuScroll</MenuScroll>
         </Channels>
+        <Chats>
+          <Routes>
+            <Route path={'/workspace/channel'} element={<Channel />} />
+            <Route path={'/workspace/dm'} element={<DirectMessage />} />
+          </Routes>
+        </Chats>
       </WorkspaceWrapper>
-      {children}
     </div>
   );
 };

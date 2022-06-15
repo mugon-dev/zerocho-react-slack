@@ -6,8 +6,7 @@ import loadable from '@loadable/component';
 // 코드 스플리팅
 const Login = loadable(() => import('@pages/Login'));
 const SignUp = loadable(() => import('@pages/SignUp'));
-const Channel = loadable(() => import('@pages/channel'));
-
+const Workspace = loadable(() => import('@layouts/Workspace'));
 const App: FC = () => {
   return (
     <BrowserRouter>
@@ -15,7 +14,7 @@ const App: FC = () => {
         <Route path={'/'} element={<Navigate to={'/login'} replace />} />
         <Route path={'/login'} element={<Login />} />
         <Route path={'/signup'} element={<SignUp />} />
-        <Route path={'/workspace/channel'} element={<Channel />} />
+        <Route path={'/workspace/:workspace/*'} element={<Workspace />} />
       </Routes>
     </BrowserRouter>
   );
