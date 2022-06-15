@@ -2,8 +2,9 @@ import React, { useCallback, useState } from 'react';
 import axios from 'axios';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import {
+  AddButton,
   Channels,
   Chats,
   Header,
@@ -12,6 +13,7 @@ import {
   ProfileImg,
   ProfileModal,
   RightMenu,
+  WorkspaceButton,
   WorkspaceName,
   Workspaces,
   WorkspaceWrapper,
@@ -20,13 +22,20 @@ import gravatar from 'gravatar';
 import { Route, Routes } from 'react-router';
 import loadable from '@loadable/component';
 import Menu from '@components/Menu';
+import { IUser } from '@typings/db';
+import { Button, Input, Label } from '@pages/SignUp/styles';
+import useInput from '@hooks/useInput';
+import Modal from '@components/Modal';
 
 const Channel = loadable(() => import('@pages/channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
 
 const Index = () => {
-  const { data, error, mutate } = useSWR('/api/users', fetcher);
+  const { data: userData, error, mutate } = useSWR<IUser | false>('/api/users', fetcher);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
+  const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
+  const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
   const onLogout = useCallback(() => {
     axios.post('/api/users/logout', null, { withCredentials: true }).then(() => {
       mutate(false, false);
@@ -35,33 +44,52 @@ const Index = () => {
   const onClickUserProfile = useCallback(() => {
     setShowUserMenu((prev) => !prev);
   }, []);
+  const onClickCreateWorkspace = useCallback(() => {
+    setShowCreateWorkspaceModal((prev) => !prev);
+  }, []);
+  const onCreateWorkspace = useCallback(() => {}, []);
+  const onCloseModal = useCallback(() => {
+    setShowCreateWorkspaceModal(false);
+  }, []);
   // return 은 hooks 보다 아래에 있어야함
-  if (!data) {
+  if (!userData) {
     return <Navigate replace to="/login" />;
   }
   return (
     <div>
       <Header>
-        <RightMenu>
-          <span onClick={onClickUserProfile}>
-            <ProfileImg src={gravatar.url(data.email, { s: '28px', d: 'retro' })} alt={data.nickname} />
+        {userData && (
+          <RightMenu>
+            <span onClick={onClickUserProfile}>
+              <ProfileImg src={gravatar.url(userData.email, { s: '28px', d: 'retro' })} alt={userData.nickname} />
+            </span>
             {showUserMenu && (
               <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onClickUserProfile}>
                 <ProfileModal>
-                  <img src={gravatar.url(data.email, { s: '36px', d: 'retro' })} alt={data.nickname} />
+                  <img src={gravatar.url(userData.email, { s: '36px', d: 'retro' })} alt={userData.nickname} />
                   <div>
-                    <span id={'profile-name'}>{data.nickname}</span>
-                    <span id={'profile-active'}>Active</span>
+                    <span id="profile-name">{userData.nickname}</span>
+                    <span id="profile-active">Active</span>
                   </div>
                 </ProfileModal>
                 <LogOutButton onClick={onLogout}>로그아웃</LogOutButton>
               </Menu>
             )}
-          </span>
-        </RightMenu>
+          </RightMenu>
+        )}
       </Header>
       <WorkspaceWrapper>
-        <Workspaces>test</Workspaces>
+        <Workspaces>
+          {userData &&
+            userData.Workspaces.map((ws) => {
+              return (
+                <Link key={ws.id} to={`/workspace/${ws.url}/channel/일반`}>
+                  <WorkspaceButton>{ws.name.slice(0, 1).toUpperCase()}</WorkspaceButton>
+                </Link>
+              );
+            })}
+          <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
+        </Workspaces>
         <Channels>
           <WorkspaceName>Sleact</WorkspaceName>
           <MenuScroll>MenuScroll</MenuScroll>
@@ -73,6 +101,19 @@ const Index = () => {
           </Routes>
         </Chats>
       </WorkspaceWrapper>
+      <Modal show={showCreateWorkspaceModal} onCloseModal={onCloseModal}>
+        <form onSubmit={onCreateWorkspace}>
+          <Label id="workspace-label">
+            <span>워크스페이스 이름</span>
+            <Input id="workspace" value={newWorkspace} onChange={onChangeNewWorkspace} />
+          </Label>
+          <Label id="workspace-url-label">
+            <span>워크스페이스 url</span>
+            <Input id="workspace-url" value={newUrl} onChange={onChangeNewUrl} />
+          </Label>
+          <Button type="submit">생성하기</Button>
+        </form>
+      </Modal>
     </div>
   );
 };
