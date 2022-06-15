@@ -47,6 +47,10 @@ const Index = () => {
   const onClickCreateWorkspace = useCallback(() => {
     setShowCreateWorkspaceModal((prev) => !prev);
   }, []);
+  const onCloseUserProfile = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    setShowUserMenu(false);
+  }, []);
   const onCreateWorkspace = useCallback(() => {}, []);
   const onCloseModal = useCallback(() => {
     setShowCreateWorkspaceModal(false);
@@ -64,7 +68,7 @@ const Index = () => {
               <ProfileImg src={gravatar.url(userData.email, { s: '28px', d: 'retro' })} alt={userData.nickname} />
             </span>
             {showUserMenu && (
-              <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onClickUserProfile}>
+              <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onCloseUserProfile}>
                 <ProfileModal>
                   <img src={gravatar.url(userData.email, { s: '36px', d: 'retro' })} alt={userData.nickname} />
                   <div>

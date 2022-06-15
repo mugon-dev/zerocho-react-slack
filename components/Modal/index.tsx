@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { CloseModalButton, CreateModal } from '@components/Modal/styles';
 
 type Props = {
   children?: React.ReactNode;
@@ -6,10 +7,20 @@ type Props = {
   onCloseModal: () => void;
 };
 const Modal: React.FC<Props> = ({ show, children, onCloseModal }: Props) => {
+  const stopPropagation = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+  }, []);
+
+  if (!show) {
+    return null;
+  }
   return (
-    <div>
-      <div>modal</div>
-    </div>
+    <CreateModal onClick={onCloseModal}>
+      <div onClick={stopPropagation}>
+        <CloseModalButton onClick={onCloseModal}>&times;</CloseModalButton>
+        {children}
+      </div>
+    </CreateModal>
   );
 };
 
