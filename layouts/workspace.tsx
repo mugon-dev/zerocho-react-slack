@@ -11,7 +11,7 @@ const Workspace: React.FC<Props> = ({ children }: Props) => {
   const { data, error, mutate } = useSWR('/api/users', fetcher);
   const onLogout = useCallback(() => {
     axios.post('/api/users/logout', null, { withCredentials: true }).then(() => {
-      mutate();
+      mutate(false, false);
     });
   }, []);
 

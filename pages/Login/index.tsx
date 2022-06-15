@@ -23,8 +23,10 @@ const Login = () => {
             withCredentials: true,
           },
         )
-        .then(() => {
-          mutate();
+        .then((response) => {
+          // optimistic UI => mutate option true
+          // ui 먼저 바꾸고 그 결과를 나중에 서버로 보내서 적용
+          mutate(response.data, false);
         })
         .catch((error) => {
           setLogInError(error.response?.data?.code === 401);
