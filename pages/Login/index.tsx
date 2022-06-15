@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from 'react';
 import { Button, Error, Form, Header, Input, Label, LinkContainer } from '@pages/SignUp/styles';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import useInput from '@hooks/useInput';
 import axios from 'axios';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 
 const Login = () => {
-  const { data, error } = useSWR('/api/users', fetcher);
+  const { data, error, mutate } = useSWR('/api/users', fetcher);
   const [logInError, setLogInError] = useState(false);
   const [email, onChangeEmail] = useInput('');
   const [password, onChangePassword] = useInput('');
@@ -23,13 +23,21 @@ const Login = () => {
             withCredentials: true,
           },
         )
-        .then(() => {})
+        .then(() => {
+          mutate();
+        })
         .catch((error) => {
           setLogInError(error.response?.data?.code === 401);
         });
     },
     [email, password],
   );
+  if (data === undefined) {
+    return <div>로딩중 ... </div>;
+  }
+  if (data) {
+    return <Navigate replace to="/workspace/channel" />;
+  }
   return (
     <div id="container">
       <Header>Sleact</Header>
