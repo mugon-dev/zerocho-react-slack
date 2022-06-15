@@ -1,11 +1,11 @@
 import React from 'react';
-import Workspace from '@layouts/workspace';
+import Index from '@layouts/Workspace';
 
 const Channel = () => {
   return (
-    <Workspace>
+    <Index>
       <div>Login success</div>
-    </Workspace>
+    </Index>
   );
 };
 
