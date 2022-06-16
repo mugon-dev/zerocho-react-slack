@@ -6,16 +6,33 @@ import { Container, Header } from '@pages/DirectMessage/styles';
 import gravatar from 'gravatar';
 import ChatBox from '@components/ChatBox';
 import useInput from '@hooks/useInput';
+import { IDM } from '@typings/db';
+import axios from 'axios';
 
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher);
   const { data: myData } = useSWR(`/api/users`, fetcher);
-  const [chat, onChangeChat, setChat] = useInput('');
-  const onSubmitForm = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setChat('');
-  }, []);
+  const { data: chatData, mutate: mutateChat } = useSWR<IDM[]>(
+    `/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=1`,
+    fetcher,
+  );
+  const [chat, onChangeChat, setChat] = useInput<string>('');
+  const onSubmitForm = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (chat?.trim()) {
+        axios
+          .post(`/api/workspaces/${workspace}/dms/${id}/chats`, { content: chat })
+          .then((response) => {
+            mutateChat(response.data);
+            setChat('');
+          })
+          .catch(console.error);
+      }
+    },
+    [chat],
+  );
   if (!userData || !myData) {
     return null;
   }
