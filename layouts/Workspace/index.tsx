@@ -20,10 +20,10 @@ import {
   WorkspaceWrapper,
 } from '@layouts/Workspace/styles';
 import gravatar from 'gravatar';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useParams } from 'react-router';
 import loadable from '@loadable/component';
 import Menu from '@components/Menu';
-import { IUser } from '@typings/db';
+import { IChannel, IUser } from '@typings/db';
 import { Button, Input, Label } from '@pages/SignUp/styles';
 import useInput from '@hooks/useInput';
 import Modal from '@components/Modal';
@@ -34,7 +34,9 @@ const Channel = loadable(() => import('@pages/channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
 
 const Index = () => {
+  const { workspace } = useParams<{ workspace?: string }>();
   const { data: userData, error, mutate } = useSWR<IUser | false>('/api/users', fetcher);
+  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
@@ -147,12 +149,15 @@ const Index = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
+            {channelData?.map((v) => {
+              return <div>{v.name}</div>;
+            })}
           </MenuScroll>
         </Channels>
         <Chats>
           <Routes>
-            <Route path={'/workspace/channel'} element={<Channel />} />
-            <Route path={'/workspace/dm'} element={<DirectMessage />} />
+            <Route path={'/workspace/:workspace/channel/:channel'} element={<Channel />} />
+            <Route path={'/workspace/:workspace/dm/:id'} element={<DirectMessage />} />
           </Routes>
         </Chats>
       </WorkspaceWrapper>
