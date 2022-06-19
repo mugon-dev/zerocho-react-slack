@@ -1,6 +1,7 @@
 import { ChatZone } from '@components/ChatList/styles';
 import { IDM } from '@typings/db';
 import React, { FC } from 'react';
+import Chat from '@components/Chat';
 
 interface Props {
   // isReachingEnd?: boolean;
@@ -24,7 +25,9 @@ const ChatList: FC<Props> = ({ chatData }) => {
 
   return (
     <ChatZone>
-      {/*{chatData.map((v) => {})}*/}
+      {chatData?.map((chat) => {
+        return <Chat key={chat.id} data={chat} />;
+      })}
       {/*<Scrollbars autoHide ref={scrollbarRef} onScrollFrame={onScroll}>*/}
       {/*  {Object.entries(chatSections).map(([date, chats]) => {*/}
       {/*    return (*/}
