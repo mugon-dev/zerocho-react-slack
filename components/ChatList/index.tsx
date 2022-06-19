@@ -1,15 +1,16 @@
 import { ChatZone } from '@components/ChatList/styles';
-import { IChat, IDM } from '@typings/db';
+import { IDM } from '@typings/db';
 import React, { FC } from 'react';
 
 interface Props {
-  isReachingEnd?: boolean;
-  isEmpty: boolean;
-  chatSections: { [key: string]: (IDM | IChat)[] };
-  setSize: (f: (size: number) => number) => Promise<(IDM | IChat)[][] | undefined>;
+  // isReachingEnd?: boolean;
+  // isEmpty: boolean;
+  // chatSections: { [key: string]: (IDM | IChat)[] };
+  // setSize: (f: (size: number) => number) => Promise<(IDM | IChat)[][] | undefined>;
+  chatData: IDM[] | undefined;
 }
 
-const ChatList: FC<Props> = ({ isReachingEnd, isEmpty, chatSections, setSize }) => {
+const ChatList: FC<Props> = ({ chatData }) => {
   // const onScroll = useCallback(
   //   (values) => {
   //     if (values.scrollTop === 0 && !isReachingEnd && !isEmpty) {
@@ -23,6 +24,7 @@ const ChatList: FC<Props> = ({ isReachingEnd, isEmpty, chatSections, setSize }) 
 
   return (
     <ChatZone>
+      {/*{chatData.map((v) => {})}*/}
       {/*<Scrollbars autoHide ref={scrollbarRef} onScrollFrame={onScroll}>*/}
       {/*  {Object.entries(chatSections).map(([date, chats]) => {*/}
       {/*    return (*/}
