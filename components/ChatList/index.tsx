@@ -1,7 +1,8 @@
 import { ChatZone } from '@components/ChatList/styles';
 import { IDM } from '@typings/db';
-import React, { FC } from 'react';
+import React, { FC, useCallback, useRef } from 'react';
 import Chat from '@components/Chat';
+import Scrollbars from 'react-custom-scrollbars';
 
 interface Props {
   // isReachingEnd?: boolean;
@@ -12,6 +13,8 @@ interface Props {
 }
 
 const ChatList: FC<Props> = ({ chatData }) => {
+  const scrollbarRef = useRef(null);
+  const onScroll = useCallback(() => {}, []);
   // const onScroll = useCallback(
   //   (values) => {
   //     if (values.scrollTop === 0 && !isReachingEnd && !isEmpty) {
@@ -25,9 +28,12 @@ const ChatList: FC<Props> = ({ chatData }) => {
 
   return (
     <ChatZone>
-      {chatData?.map((chat) => {
-        return <Chat key={chat.id} data={chat} />;
-      })}
+      <Scrollbars autoHide={true} ref={scrollbarRef} onScrollFrame={onScroll}>
+        {chatData &&
+          chatData?.map((chat) => {
+            return <Chat key={chat.id} data={chat} />;
+          })}
+      </Scrollbars>
       {/*<Scrollbars autoHide ref={scrollbarRef} onScrollFrame={onScroll}>*/}
       {/*  {Object.entries(chatSections).map(([date, chats]) => {*/}
       {/*    return (*/}

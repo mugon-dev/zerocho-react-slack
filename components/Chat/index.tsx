@@ -3,6 +3,7 @@ import { IChat, IDM } from '@typings/db';
 import React, { memo, VFC } from 'react';
 import gravatar from 'gravatar';
 import { useParams } from 'react-router-dom';
+import dayjs from 'dayjs';
 
 interface Props {
   data: IDM | IChat;
@@ -45,7 +46,7 @@ const Chat: VFC<Props> = ({ data }) => {
       <div className="chat-text">
         <div className="chat-user">
           <b>{user.nickname}</b>
-          <span>data.createdAt</span>
+          <span>{dayjs(data.createdAt).format('h:mm A')}</span>
         </div>
         <p>{data.content}</p>
       </div>
