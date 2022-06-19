@@ -8,6 +8,8 @@
     // 미리 설정된 규칙 세트을 사용한다
     "plugin:prettier/recommended",
     // prettier 단순 설정
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    // useCallback, useEffect 2번째 인자
+    "react-app"
   ]
 }

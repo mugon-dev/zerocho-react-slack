@@ -18,7 +18,7 @@ const ChatBox = ({ onSubmitForm, chat, onChangeChat, placeholder, data }: Props)
     if (textareaRef.current) {
       autosize(textareaRef.current);
     }
-  });
+  }, []);
   const onKeydownChat = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter') {

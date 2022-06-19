@@ -31,7 +31,7 @@ const DirectMessage = () => {
           .catch(console.error);
       }
     },
-    [chat],
+    [chat, id, mutateChat, setChat, workspace],
   );
   if (!userData || !myData) {
     return null;
