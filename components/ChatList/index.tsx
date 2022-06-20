@@ -1,6 +1,6 @@
 import { ChatZone, Section, StickyHeader } from '@components/ChatList/styles';
 import { IDM } from '@typings/db';
-import React, { forwardRef, useCallback } from 'react';
+import React, { forwardRef, MutableRefObject, useCallback } from 'react';
 import Scrollbars, { positionValues } from 'react-custom-scrollbars';
 import Chat from '@components/Chat';
 
@@ -22,6 +22,10 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, isEmpty
         // 데이터 추가 로딩
         setSize((prevSize) => prevSize + 1)?.then(() => {
           // 스크롤 위치 유지
+          const current = (ref as MutableRefObject<Scrollbars>)?.current;
+          if (current) {
+            current.scrollTop(current.getScrollHeight() - values.scrollHeight);
+          }
         });
       }
     },
