@@ -12,11 +12,13 @@ import axios from 'axios';
 import ChatList from '@components/ChatList';
 import makeSection from '@utils/makeSection';
 import Scrollbars from 'react-custom-scrollbars';
+import useSocket from '@hooks/useSocket';
 
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher);
   const { data: myData } = useSWR(`/api/users`, fetcher);
+  const [socket] = useSocket(workspace);
   const PAGE_SIZE = 20;
   const {
     data: chatData,
@@ -67,6 +69,40 @@ const DirectMessage = () => {
       scrollbarRef.current?.scrollToBottom();
     }
   }, [chatData?.length]);
+
+  const onMessage = useCallback(
+    (data: IDM) => {
+      // id는 상대방 id
+      // 상대방의 새 메시지만 새로가져옴
+      if (data.SenderId === Number(id) && myData.id !== Number(id)) {
+        mutateChat((chatData) => {
+          chatData?.[0].unshift(data);
+          return chatData;
+        }, false).then(() => {
+          if (scrollbarRef.current) {
+            // 내가 스크롤바를 150 px이상 올렸을땐 바텀으로 스크롤을 바텀으로 안보냄 150px 이하면 스크롤 바를 바텀으로 이동
+            if (
+              scrollbarRef.current.getScrollHeight() <
+              scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
+            ) {
+              console.log('scrollToBottom', scrollbarRef.current?.getValues());
+              setTimeout(() => {
+                scrollbarRef.current?.scrollToBottom();
+              }, 50);
+            }
+          }
+        });
+      }
+    },
+    [id, mutateChat, myData.id],
+  );
+  // socket 연결
+  useEffect(() => {
+    socket?.on('dm', onMessage);
+    return () => {
+      socket?.off('dm', onMessage);
+    };
+  }, [onMessage, socket]);
   // chatData.reverse() => 기존 배열이 바뀌는 문제 발생
   // immutable 하게 바꾸기
   // [].concat(...chatData).reverse() or
