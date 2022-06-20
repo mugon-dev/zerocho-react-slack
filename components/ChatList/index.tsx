@@ -1,7 +1,7 @@
 import { ChatZone, Section, StickyHeader } from '@components/ChatList/styles';
 import { IDM } from '@typings/db';
-import React, { FC, useCallback, useRef } from 'react';
-import Scrollbars from 'react-custom-scrollbars';
+import React, { forwardRef, useCallback } from 'react';
+import Scrollbars, { positionValues } from 'react-custom-scrollbars';
 import Chat from '@components/Chat';
 
 interface Props {
@@ -12,9 +12,15 @@ interface Props {
   // chatData: IDM[] | undefined;
 }
 
-const ChatList: FC<Props> = ({ chatSections }) => {
-  const scrollbarRef = useRef(null);
-  const onScroll = useCallback(() => {}, []);
+const ChatList = forwardRef<Scrollbars, Props>(({ chatSections }: Props, ref) => {
+  // 채팅을 하고 엔터를 쳤을때 스크롤 포지션을 가장 아래로 내리기 위해 부모 컴포넌트로 올림 => forwardRef 사용
+  // const scrollbarRef = useRef(null);
+  const onScroll = useCallback((values: positionValues) => {
+    if (values.scrollTop === 0) {
+      console.log('가장 위');
+      // 데이터 추가 로딩
+    }
+  }, []);
   // const onScroll = useCallback(
   //   (values) => {
   //     if (values.scrollTop === 0 && !isReachingEnd && !isEmpty) {
@@ -28,7 +34,7 @@ const ChatList: FC<Props> = ({ chatSections }) => {
 
   return (
     <ChatZone>
-      <Scrollbars autoHide={true} ref={scrollbarRef} onScrollFrame={onScroll}>
+      <Scrollbars autoHide={true} ref={ref} onScrollFrame={onScroll}>
         {Object.entries(chatSections).map(([date, chats]) => {
           return (
             <Section className={`section-${date}`} key={date}>
@@ -44,6 +50,6 @@ const ChatList: FC<Props> = ({ chatSections }) => {
       </Scrollbars>
     </ChatZone>
   );
-};
+});
 
 export default ChatList;

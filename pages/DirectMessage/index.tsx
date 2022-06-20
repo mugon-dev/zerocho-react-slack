@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
@@ -10,6 +10,7 @@ import { IDM } from '@typings/db';
 import axios from 'axios';
 import ChatList from '@components/ChatList';
 import makeSection from '@utils/makeSection';
+import Scrollbars from 'react-custom-scrollbars';
 
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
@@ -20,6 +21,7 @@ const DirectMessage = () => {
     fetcher,
   );
   const [chat, onChangeChat, setChat] = useInput<string>('');
+  const scrollbarRef = useRef<Scrollbars>(null);
   const onSubmitForm = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -49,7 +51,7 @@ const DirectMessage = () => {
         <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
         <span>{userData.nickname}</span>
       </Header>
-      <ChatList chatSections={chatSections} />
+      <ChatList chatSections={chatSections} ref={scrollbarRef} />
       <ChatBox chat={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm} placeholder={''} />
     </Container>
   );
