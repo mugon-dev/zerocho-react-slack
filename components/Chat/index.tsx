@@ -1,18 +1,38 @@
 import { ChatWrapper } from '@components/Chat/styles';
 import { IChat, IDM } from '@typings/db';
-import React, { memo, VFC } from 'react';
+import React, { FC, memo, useMemo } from 'react';
 import gravatar from 'gravatar';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
+import regexifyString from 'regexify-string';
 
 interface Props {
   data: IDM | IChat;
 }
 
-const Chat: VFC<Props> = ({ data }) => {
+const Chat: FC<Props> = ({ data }) => {
   const { workspace } = useParams<{ workspace: string; channel: string }>();
   const user = 'Sender' in data ? data.Sender : data.User;
-
+  // @[username](id)
+  const result = useMemo(
+    () =>
+      regexifyString({
+        input: data.content,
+        pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
+        decorator(match, index) {
+          const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
+          if (arr) {
+            return (
+              <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
+                @{arr[1]}
+              </Link>
+            );
+          }
+          return <br key={index} />;
+        },
+      }),
+    [data.content, workspace],
+  );
   // const result = useMemo(
   //   () =>
   //     // uploads\\서버주소
@@ -48,7 +68,7 @@ const Chat: VFC<Props> = ({ data }) => {
           <b>{user.nickname}</b>
           <span>{dayjs(data.createdAt).format('h:mm A')}</span>
         </div>
-        <p>{data.content}</p>
+        <p>{result}</p>
       </div>
     </ChatWrapper>
   );
