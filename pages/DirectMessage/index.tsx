@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
@@ -34,18 +34,39 @@ const DirectMessage = () => {
   const onSubmitForm = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      if (chat?.trim()) {
+      // optimistic ui 적용
+      if (chat?.trim() && chatData) {
+        mutateChat((prevChatData) => {
+          prevChatData?.[0].unshift({
+            id: (chatData[0][0]?.id || 0) + 1,
+            content: chat,
+            SenderId: myData.id,
+            Sender: myData,
+            ReceiverId: userData.id,
+            Receiver: userData,
+            createdAt: new Date(),
+          });
+          return prevChatData;
+        }, false).then(() => {
+          setChat('');
+          scrollbarRef.current?.scrollToBottom();
+        });
         axios
           .post(`/api/workspaces/${workspace}/dms/${id}/chats`, { content: chat })
           .then((response) => {
-            mutateChat(response.data);
-            setChat('');
+            mutateChat();
           })
           .catch(console.error);
       }
     },
-    [chat, id, mutateChat, setChat, workspace],
+    [chat, chatData, mutateChat, workspace, id, myData, userData, setChat],
   );
+  // 로딩 시 스크롤바 제일 아래로
+  useEffect(() => {
+    if (chatData?.length === 1) {
+      scrollbarRef.current?.scrollToBottom();
+    }
+  }, [chatData?.length]);
   // chatData.reverse() => 기존 배열이 바뀌는 문제 발생
   // immutable 하게 바꾸기
   // [].concat(...chatData).reverse() or
