@@ -9,6 +9,7 @@ import useInput from '@hooks/useInput';
 import { IDM } from '@typings/db';
 import axios from 'axios';
 import ChatList from '@components/ChatList';
+import makeSection from '@utils/makeSection';
 
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
@@ -34,6 +35,11 @@ const DirectMessage = () => {
     },
     [chat, id, mutateChat, setChat, workspace],
   );
+  // chatData.reverse() => 기존 배열이 바뀌는 문제 발생
+  // immutable 하게 바꾸기
+  // [].concat(...chatData).reverse() or
+  // [...chatData].reverse()
+  const chatSections = makeSection(chatData ? [...chatData].reverse() : []);
   if (!userData || !myData) {
     return null;
   }
@@ -43,7 +49,7 @@ const DirectMessage = () => {
         <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
         <span>{userData.nickname}</span>
       </Header>
-      <ChatList chatData={chatData} />
+      <ChatList chatSections={chatSections} />
       <ChatBox chat={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm} placeholder={''} />
     </Container>
   );
