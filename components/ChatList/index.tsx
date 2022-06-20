@@ -5,22 +5,28 @@ import Scrollbars, { positionValues } from 'react-custom-scrollbars';
 import Chat from '@components/Chat';
 
 interface Props {
-  // isReachingEnd?: boolean;
-  // isEmpty: boolean;
+  isReachingEnd: boolean;
+  isEmpty: boolean;
   chatSections: { [key: string]: IDM[] };
-  // setSize: (f: (size: number) => number) => Promise<(IDM | IChat)[][] | undefined>;
+  setSize: (size: number | ((_size: number) => number)) => Promise<IDM[][] | undefined>;
   // chatData: IDM[] | undefined;
 }
 
-const ChatList = forwardRef<Scrollbars, Props>(({ chatSections }: Props, ref) => {
+const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, isEmpty, isReachingEnd }: Props, ref) => {
   // 채팅을 하고 엔터를 쳤을때 스크롤 포지션을 가장 아래로 내리기 위해 부모 컴포넌트로 올림 => forwardRef 사용
   // const scrollbarRef = useRef(null);
-  const onScroll = useCallback((values: positionValues) => {
-    if (values.scrollTop === 0) {
-      console.log('가장 위');
-      // 데이터 추가 로딩
-    }
-  }, []);
+  const onScroll = useCallback(
+    (values: positionValues) => {
+      if (values.scrollTop === 0 && !isReachingEnd) {
+        console.log('가장 위');
+        // 데이터 추가 로딩
+        setSize((prevSize) => prevSize + 1)?.then(() => {
+          // 스크롤 위치 유지
+        });
+      }
+    },
+    [setSize],
+  );
   // const onScroll = useCallback(
   //   (values) => {
   //     if (values.scrollTop === 0 && !isReachingEnd && !isEmpty) {
