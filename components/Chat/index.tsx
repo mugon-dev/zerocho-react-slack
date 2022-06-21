@@ -11,26 +11,31 @@ interface Props {
 }
 
 const Chat: FC<Props> = ({ data }) => {
+  const backUrl = 'http://192.168.0.117:3030';
   const { workspace } = useParams<{ workspace: string; channel: string }>();
   const user = 'Sender' in data ? data.Sender : data.User;
   // @[username](id)
   const result = useMemo(
     () =>
-      regexifyString({
-        input: data.content,
-        pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
-        decorator(match, index) {
-          const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
-          if (arr) {
-            return (
-              <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
-                @{arr[1]}
-              </Link>
-            );
-          }
-          return <br key={index} />;
-        },
-      }),
+      data.content.startsWith('uploads/') ? (
+        <img src={`${backUrl}/${data.content}`} style={{ maxHeight: 200 }} />
+      ) : (
+        regexifyString({
+          input: data.content,
+          pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
+          decorator(match, index) {
+            const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
+            if (arr) {
+              return (
+                <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
+                  @{arr[1]}
+                </Link>
+              );
+            }
+            return <br key={index} />;
+          },
+        })
+      ),
     [data.content, workspace],
   );
   // const result = useMemo(

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
@@ -13,6 +13,7 @@ import ChatList from '@components/ChatList';
 import makeSection from '@utils/makeSection';
 import Scrollbars from 'react-custom-scrollbars';
 import useSocket from '@hooks/useSocket';
+import { DragOver } from '@pages/channel/styles';
 
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
@@ -28,6 +29,7 @@ const DirectMessage = () => {
     (index) => `/api/workspaces/${workspace}/dms/${id}/chats?perPage=${PAGE_SIZE}&page=${index + 1}`,
     fetcher,
   );
+  const [dragOver, setDragOver] = useState(false);
   // infinity scroll 데이터
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < PAGE_SIZE) || false;
@@ -103,6 +105,43 @@ const DirectMessage = () => {
       socket?.off('dm', onMessage);
     };
   }, [onMessage, socket]);
+  const onDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      console.log(e);
+      const formData = new FormData();
+      if (e.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          // If dropped items aren't files, reject them
+          if (e.dataTransfer.items[i].kind === 'file') {
+            const file = e.dataTransfer.items[i].getAsFile();
+            if (file) {
+              console.log('... file[' + i + '].name = ' + file.name);
+              formData.append('image', file);
+            }
+          }
+        }
+      } else {
+        // Use DataTransfer interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios.post(`/api/workspaces/${workspace}/dms/${id}/images`, formData).then(() => {
+        setDragOver(false);
+        mutateChat();
+      });
+    },
+    [workspace, id],
+  );
+
+  const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    console.log(e);
+    setDragOver(true);
+  }, []);
   // chatData.reverse() => 기존 배열이 바뀌는 문제 발생
   // immutable 하게 바꾸기
   // [].concat(...chatData).reverse() or
@@ -112,7 +151,7 @@ const DirectMessage = () => {
     return null;
   }
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
         <span>{userData.nickname}</span>
@@ -125,6 +164,7 @@ const DirectMessage = () => {
         isReachingEnd={isReachingEnd}
       />
       <ChatBox chat={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm} placeholder={''} />
+      {dragOver && <DragOver>업로드!</DragOver>}
     </Container>
   );
 };

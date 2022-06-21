@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Container, Header } from '@pages/channel/styles';
+import { Container, DragOver, Header } from '@pages/channel/styles';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
@@ -33,6 +33,7 @@ const Channel = () => {
     fetcher,
   );
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   // infinity scroll 데이터
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < PAGE_SIZE) || false;
@@ -66,7 +67,7 @@ const Channel = () => {
           .catch(console.error);
       }
     },
-    [chat, chatData, mutateChat, workspace, myData, channelData, setChat],
+    [chat, chatData, channelData, mutateChat, workspace, channel, myData, setChat],
   );
   // 로딩 시 스크롤바 제일 아래로
   useEffect(() => {
@@ -79,7 +80,7 @@ const Channel = () => {
     (data: IChat) => {
       // id는 상대방 id
       // 상대방의 새 메시지만 새로가져옴
-      if (data.Channel.name === channel && data.UserId !== myData?.id) {
+      if ((data.Channel.name === channel && data.content.startsWith('uploads\\')) || data.UserId !== myData?.id) {
         mutateChat((chatData) => {
           chatData?.[0].unshift(data);
           return chatData;
@@ -117,6 +118,36 @@ const Channel = () => {
     setShowInviteChannelModal(false);
   }, []);
 
+  const onDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const formData = new FormData();
+      if (e.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          // if dropped items aren't files, reject them
+          if (e.dataTransfer.items[i].kind === 'file') {
+            const file = e.dataTransfer.items[i].getAsFile();
+            if (file) formData.append('image', file);
+          }
+        }
+      } else {
+        // Use DataTransfer interface to access the file
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData).then(() => {
+        setDragOver(false);
+      });
+    },
+    [channel, workspace],
+  );
+  const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(true);
+  }, []);
+
   // chatData.reverse() => 기존 배열이 바뀌는 문제 발생
   // immutable 하게 바꾸기
   // [].concat(...chatData).reverse() or
@@ -127,7 +158,7 @@ const Channel = () => {
     return null;
   }
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         <span>#{channel}</span>
         <div style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -156,7 +187,7 @@ const Channel = () => {
         onCloseModal={onCloseModal}
         setShowInviteChannelModal={setShowInviteChannelModal}
       />
-      {/*{dragOver && <DragOver>업로드!</DragOver>}*/}
+      {dragOver && <DragOver>업로드!</DragOver>}
     </Container>
   );
 };
