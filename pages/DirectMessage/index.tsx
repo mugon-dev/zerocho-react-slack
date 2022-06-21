@@ -54,6 +54,7 @@ const DirectMessage = () => {
         }, false).then(() => {
           setChat('');
           scrollbarRef.current?.scrollToBottom();
+          localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
         });
         axios
           .post(`/api/workspaces/${workspace}/dms/${id}/chats`, { content: chat })
@@ -71,7 +72,10 @@ const DirectMessage = () => {
       scrollbarRef.current?.scrollToBottom();
     }
   }, [chatData?.length]);
-
+  // 채널 들어왔을때 시간 업데이트 안 읽은 메세지 수 기준용
+  useEffect(() => {
+    localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
+  }, [id, workspace]);
   const onMessage = useCallback(
     (data: IDM) => {
       // id는 상대방 id
@@ -132,9 +136,10 @@ const DirectMessage = () => {
       axios.post(`/api/workspaces/${workspace}/dms/${id}/images`, formData).then(() => {
         setDragOver(false);
         mutateChat();
+        localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
       });
     },
-    [workspace, id],
+    [workspace, id, mutateChat],
   );
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {

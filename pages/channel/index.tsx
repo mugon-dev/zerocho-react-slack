@@ -58,6 +58,7 @@ const Channel = () => {
         }, false).then(() => {
           setChat('');
           scrollbarRef.current?.scrollToBottom();
+          localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
         });
         axios
           .post(`/api/workspaces/${workspace}/channels/${channel}/chats`, { content: chat })
@@ -75,6 +76,11 @@ const Channel = () => {
       scrollbarRef.current?.scrollToBottom();
     }
   }, [chatData?.length]);
+
+  // 채널 들어왔을때 시간 업데이트 안 읽은 메세지 수 기준용
+  useEffect(() => {
+    localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
+  }, [channel, workspace]);
 
   const onMessage = useCallback(
     (data: IChat) => {
@@ -139,6 +145,7 @@ const Channel = () => {
       }
       axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData).then(() => {
         setDragOver(false);
+        localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
       });
     },
     [channel, workspace],
